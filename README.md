@@ -1,4 +1,6 @@
-1. 실험 환경
+### spam filter examples using transformers and trainer
+
+#### 실험 환경
 
 - [conda 설치](https://docs.anaconda.com/anaconda/install/mac-os/#using-the-command-line-install)
 
@@ -9,7 +11,7 @@ $ conda activate study
 - 필요한 패키지 설치 
 $ python -m pip install -r requirements
 
-2. 실험
+#### 실험
 
 - 학습 및 평가
 $ python train.py
