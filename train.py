@@ -20,13 +20,13 @@ from sklearn.metrics import classification_report, confusion_matrix
 # 1. dataset 준비
 # local file loading 매뉴얼 참조 : https://huggingface.co/docs/datasets/loading_datasets.html?fbclid=IwAR2om0_gpIbQ07vK0Rhy1fhpaOSk5cWJAC-vxcx269Di2SXDPefR7x9hZ3M#from-local-files
 #   - text data를 읽어서 dataset을 만든다.
-#   - train, valid, test는 기본모델 실험과 동일하게 순서대로 8:1:1로 분할해서 만든다. 
+#   - train, valid, test는 순서대로 8:1:1로 분할해서 만든다. 
 #   - label은 숫자로 변환하고, 참조할 사전을 만들어둔다.
 
+input_path = './SMSSpamCollection.txt'
 train_data = {'idx': [], 'label': [], 'sentence': []}
 valid_data = {'idx': [], 'label': [], 'sentence': []}
 test_data  = {'idx': [], 'label': [], 'sentence': []}
-input_path = './SMSSpamCollection.txt'
 label2id = {}
 g_labelid = 0
 id2label = {}
@@ -66,33 +66,31 @@ train_dataset = Dataset.from_dict(train_data)
 valid_dataset = Dataset.from_dict(valid_data)
 test_dataset = Dataset.from_dict(test_data)
 
-# 2. metric 설정
-#   - transformers Trainer를 사용하려면 'metric'이 필요
-metric = load_metric('glue', 'sst2')
-
-# 3. pretrained model 설정
+# 2. pretrained model 설정
 #   - 데이터가 대소문자 구별하고 있어서 'cased' 사용
 
 model_checkpoint = 'distilbert-base-cased'
 #model_checkpoint = 'bert-base-cased'
 
-# 4. 데이터를 tokenizer를 이용해서 전처리
+# 3. 데이터를 tokenizer를 이용해서 전처리
 #   - transformers model을 위해서 dataset을 전처리해줘야한다.
 
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint, use_fast=True)
 def preprocess_function(examples):
     return tokenizer(examples['sentence'], padding=True, truncation=True)
+
 encoded_train_dataset = train_dataset.map(preprocess_function, batched=True)
 encoded_valid_dataset = valid_dataset.map(preprocess_function, batched=True)
 encoded_test_dataset = test_dataset.map(preprocess_function, batched=True)
 
-# 5. 모델 생성
+# 4. 모델 생성
 #   - classification 문제이므로 이미 있는 모델을 가져다 사용할 수 있다.
 
 num_labels = len(label2id)
 model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint, num_labels=num_labels)
 
-# 6. TrainingArguments 생성
+
+# 5. TrainingArguments 생성
 
 task = 'spamfilter'
 metric_name = 'eval_loss'
@@ -108,8 +106,11 @@ args = TrainingArguments(
     metric_for_best_model=metric_name,
 )
 
-# 7. metric 연결하고 Trainer 생성
+# 6. metric 설정 및 Trainer 생성
+#   - transformers Trainer를 사용하려면 'metric'이 필요
+#   - metric은 classification 문제에 적합한 아무거나 상관 없음
 
+metric = load_metric('glue', 'sst2')
 def compute_metrics(eval_pred):
     predictions, labels = eval_pred
     predictions = np.argmax(predictions, axis=1)
@@ -130,7 +131,7 @@ trainer = Trainer(
     compute_metrics=compute_metrics
 )
 
-# 8. 학습 및 평가 실시
+# 7. 학습 및 평가 실시
 
 trainer.train()
 print('')
