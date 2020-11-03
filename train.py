@@ -93,7 +93,7 @@ def get_params():
                         help="Set this flag to use hyper-parameter search by Ray.")
     parser.add_argument('--hp_trials', default=10, type=int)
     parser.add_argument('--hp_n_jobs', default=1, type=int)
-    parser.add_argument('--hp_server_port', default=8080, type=int)
+    parser.add_argument('--hp_dashboard_port', default=8080, type=int)
 
     opt = parser.parse_args()
     return opt
@@ -162,20 +162,21 @@ def main():
         scheduler = PopulationBasedTraining(
             time_attr='training_iteration',
             metric=opt.metric_for_best_model,
-            mode='max' if 'loss' in opt.metric_for_best_model else 'min',
+            mode='min' if 'loss' in opt.metric_for_best_model else 'max',
             perturbation_interval=1,
             hyperparam_mutations={
                 'weight_decay': tune.uniform(0.0, 0.3),
                 'learning_rate': tune.uniform(1e-5, 5e-5),
                 'per_device_train_batch_size': [16, 32, 64],
             }) 
+        ray.init(dashboard_port=opt.hp_dashboard_port)
         trainer.hyperparameter_search(
             backend='ray', 
+            direction='minimize' if 'loss' in opt.metric_for_best_model else 'maximize',
             scheduler=scheduler,
             keep_checkpoints_num=3,
             n_trials=opt.hp_trials, # number of trials
             n_jobs=opt.hp_n_jobs,   # number of parallel jobs, if multiple GPUs
-            server_port=opt.hp_server_port,
         )
     else:
         args = TrainingArguments(

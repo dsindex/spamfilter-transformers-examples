@@ -2,6 +2,9 @@
 
 #### env
 
+- data
+  - http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/smsspamcollection.zip
+
 - conda
   - [conda](https://docs.anaconda.com/anaconda/install/mac-os/#using-the-command-line-install)
   ```
@@ -23,14 +26,34 @@ $ python train.py
 
 - hyper-parameter search
 ```
-$ python train.py --hp_search_ray --hp_server_port=9599
+$ python train.py --hp_search_ray --hp_dashboard_port=9599
+...
+Number of trials: 10 (1 PAUSED, 6 PENDING, 1 RUNNING, 2 TERMINATED)
++------------------------+------------+------------------+-----------------+--------------------+-------------------------------+----------+----------------+-------------+
+| Trial name             | status     | loc              |   learning_rate |   num_train_epochs |   per_device_train_batch_size |     seed |   weight_decay |   objective |
+|------------------------+------------+------------------+-----------------+--------------------+-------------------------------+----------+----------------+-------------|
+| _objective_e60e7_00000 | TERMINATED |                  |     5.61152e-06 |                  2 |                             8 | 38.0779  |      0.183556  |    0.886667 |
+| _objective_e60e7_00001 | TERMINATED |                  |     2.91064e-05 |                  4 |                            32 | 24.3477  |      0.0418482 |    0.98     |
+| _objective_e60e7_00002 | PAUSED     |                  |     2.05134e-06 |                  5 |                             4 |  7.08379 |      0.0876434 |    0.973333 |
+| _objective_e60e7_00003 | RUNNING    | 9.1.40.130:37137 |     1.30667e-06 |                  3 |                             4 | 34.7809  |      0.109909  |    0.933333 |
+| _objective_e60e7_00004 | PENDING    |                  |     1.59305e-05 |                  2 |                            16 | 28.6148  |      0.136821  |             |
+| _objective_e60e7_00005 | PENDING    |                  |     1.09943e-06 |                  1 |                             4 | 38.8265  |      0.235553  |             |
+| _objective_e60e7_00006 | PENDING    |                  |     4.62259e-05 |                  4 |                            16 |  9.28123 |      0.0599021 |             |
+| _objective_e60e7_00007 | PENDING    |                  |     2.3102e-06  |                  2 |                            16 |  8.15278 |      0.15427   |             |
+| _objective_e60e7_00008 | PENDING    |                  |     4.05961e-06 |                  5 |                             4 | 21.4655  |      0.177724  |             |
+| _objective_e60e7_00009 | PENDING    |                  |     7.30954e-06 |                  5 |                            32 | 12.3579  |      0.0139351 |             |
++------------------------+------------+------------------+-----------------+--------------------+-------------------------------+----------+----------------+-------------+
+...
+
 ```
 
 - reference
   - https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/text_classification.ipynb?fbclid=IwAR1CiTt_tKSvh4ee_Kpep41yS8Dhd6m9osJYZaRaR5qFuycOvADeCK6jIZA#scrollTo=zVvslsfMIrIh
-  - https://docs.ray.io/en/master/tune/examples/pbt_transformers.html
-  - https://docs.ray.io/en/latest/tune/api_docs/execution.html#tune-run
-  - [classification_report](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html)
+  - ray
+    - https://docs.ray.io/en/master/tune/examples/pbt_transformers.html
+    - https://docs.ray.io/en/latest/tune/api_docs/execution.html#tune-run
+    - https://docs.ray.io/en/master/package-ref.html
+  - https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
   ```
   Micro average (averaging the total true positives, false negatives and false positives) is only shown for multi-label or multi-class with a subset of classes, because it corresponds to accuracy otherwise.
   ```
