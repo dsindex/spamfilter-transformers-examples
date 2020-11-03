@@ -46,3 +46,10 @@ weighted avg     0.9732    0.9732    0.9732       149
 [[129   2]
  [  2  16]]
 ```
+
+- 기타 참조
+  - [sklearn.metrics, classification_report](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html)
+  ```
+  Micro average (averaging the total true positives, false negatives and false positives) is only shown for multi-label or multi-class with a subset of classes, because it corresponds to accuracy otherwise.
+  즉, class가 2개 뿐이면, 'accuracy == micro F1'이므로 굳이 출력하지 않는 다는 의미.
+  ```
