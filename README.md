@@ -17,7 +17,7 @@ $ python -m pip install -r requirements
 $ python train.py
 
 - 결과
-  - distilbert-base-cased, F1-SCORE(micro) : 90.95%
+  - distilbert-base-cased, F1-SCORE(macro) : 90.95%
 ```
               precision    recall  f1-score   support
 
@@ -32,7 +32,7 @@ weighted avg     0.9622    0.9597    0.9606       149
  [  2  16]]
 
 ```
-  - bert-base-cased, F1-SCORE(micro) : 93.68%
+  - bert-base-cased, F1-SCORE(macro) : 93.68%
 ```
               precision    recall  f1-score   support
 
