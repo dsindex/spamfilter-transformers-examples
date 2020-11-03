@@ -24,33 +24,33 @@ $ python train.py
 - result
   - distilbert-base-cased, F1-SCORE(macro) : 90.95%
   ```
-              precision    recall  f1-score   support
+                precision    recall  f1-score   support
+  
+           ham     0.9845    0.9695    0.9769       131
+          spam     0.8000    0.8889    0.8421        18
 
-         ham     0.9845    0.9695    0.9769       131
-        spam     0.8000    0.8889    0.8421        18
+      accuracy                         0.9597       149
+     macro avg     0.8922    0.9292    0.9095       149
+  weighted avg     0.9622    0.9597    0.9606       149
 
-    accuracy                         0.9597       149
-   macro avg     0.8922    0.9292    0.9095       149
-weighted avg     0.9622    0.9597    0.9606       149
-
-[[127   4]
- [  2  16]]
+  [[127   4]
+   [  2  16]]
 
   ```
   - bert-base-cased, F1-SCORE(macro) : 93.68%
   ```
-              precision    recall  f1-score   support
+                precision    recall  f1-score   support
 
-         ham     0.9847    0.9847    0.9847       131
-        spam     0.8889    0.8889    0.8889        18
+           ham     0.9847    0.9847    0.9847       131
+          spam     0.8889    0.8889    0.8889        18
 
-    accuracy                         0.9732       149
-   macro avg     0.9368    0.9368    0.9368       149
-weighted avg     0.9732    0.9732    0.9732       149
+      accuracy                         0.9732       149
+     macro avg     0.9368    0.9368    0.9368       149
+  weighted avg     0.9732    0.9732    0.9732       149
 
-[[129   2]
- [  2  16]]
-  ```
+  [[129   2]
+   [  2  16]]
+    ```
 
 - reference
   - [sklearn.metrics, classification_report](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html)
