@@ -1,24 +1,29 @@
 ### spam filter examples using transformers and trainer
 
-#### 실험 환경
+#### env
 
-- [conda 설치](https://docs.anaconda.com/anaconda/install/mac-os/#using-the-command-line-install)
+- conda
+  - [conda](https://docs.anaconda.com/anaconda/install/mac-os/#using-the-command-line-install)
+  ```
+  $ conda create -n study python=3.6
+  $ conda activate study
+  ```
 
-- 기본 설정
-$ conda create -n study python=3.6
-$ conda activate study
-
-- 필요한 패키지 설치 
-$ python -m pip install -r requirements
-
-#### 실험
-
-- 학습 및 평가
-$ python train.py
-
-- 결과
-  - distilbert-base-cased, F1-SCORE(macro) : 90.95%
+- requirements
 ```
+$ python -m pip install -r requirements
+```
+
+#### experiments
+
+- train/evaluate
+```
+$ python train.py
+```
+
+- result
+  - distilbert-base-cased, F1-SCORE(macro) : 90.95%
+  ```
               precision    recall  f1-score   support
 
          ham     0.9845    0.9695    0.9769       131
@@ -31,9 +36,9 @@ weighted avg     0.9622    0.9597    0.9606       149
 [[127   4]
  [  2  16]]
 
-```
+  ```
   - bert-base-cased, F1-SCORE(macro) : 93.68%
-```
+  ```
               precision    recall  f1-score   support
 
          ham     0.9847    0.9847    0.9847       131
@@ -45,11 +50,10 @@ weighted avg     0.9732    0.9732    0.9732       149
 
 [[129   2]
  [  2  16]]
-```
+  ```
 
-- 기타 참조
+- reference
   - [sklearn.metrics, classification_report](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html)
   ```
   Micro average (averaging the total true positives, false negatives and false positives) is only shown for multi-label or multi-class with a subset of classes, because it corresponds to accuracy otherwise.
-  즉, class가 2개 뿐이면, 'accuracy == micro F1'이므로 굳이 출력하지 않는 다는 의미.
   ```
