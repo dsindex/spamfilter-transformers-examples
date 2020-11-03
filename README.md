@@ -1,4 +1,4 @@
-### spam filter examples using transformers and trainer
+### spamfilter examples using transformers and trainer
 
 #### env
 
@@ -21,39 +21,16 @@ $ python -m pip install -r requirements
 $ python train.py
 ```
 
-- result
-  - distilbert-base-cased, F1-SCORE(macro) : 90.95%
-  ```
-                precision    recall  f1-score   support
-  
-           ham     0.9845    0.9695    0.9769       131
-          spam     0.8000    0.8889    0.8421        18
-
-      accuracy                         0.9597       149
-     macro avg     0.8922    0.9292    0.9095       149
-  weighted avg     0.9622    0.9597    0.9606       149
-
-  [[127   4]
-   [  2  16]]
-
-  ```
-  - bert-base-cased, F1-SCORE(macro) : 93.68%
-  ```
-                precision    recall  f1-score   support
-
-           ham     0.9847    0.9847    0.9847       131
-          spam     0.8889    0.8889    0.8889        18
-
-      accuracy                         0.9732       149
-     macro avg     0.9368    0.9368    0.9368       149
-  weighted avg     0.9732    0.9732    0.9732       149
-
-  [[129   2]
-   [  2  16]]
-    ```
+- hyper-parameter search
+```
+$ python train.py --hp_search_ray --hp_server_port=9599
+```
 
 - reference
-  - [sklearn.metrics, classification_report](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html)
+  - https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/text_classification.ipynb?fbclid=IwAR1CiTt_tKSvh4ee_Kpep41yS8Dhd6m9osJYZaRaR5qFuycOvADeCK6jIZA#scrollTo=zVvslsfMIrIh
+  - https://docs.ray.io/en/master/tune/examples/pbt_transformers.html
+  - https://docs.ray.io/en/latest/tune/api_docs/execution.html#tune-run
+  - [classification_report](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html)
   ```
   Micro average (averaging the total true positives, false negatives and false positives) is only shown for multi-label or multi-class with a subset of classes, because it corresponds to accuracy otherwise.
   ```

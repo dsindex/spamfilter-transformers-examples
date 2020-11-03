@@ -1,7 +1,3 @@
-"""
-reference : https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/text_classification.ipynb?fbclid=IwAR1CiTt_tKSvh4ee_Kpep41yS8Dhd6m9osJYZaRaR5qFuycOvADeCK6jIZA#scrollTo=zVvslsfMIrIh
-"""
-
 import sys
 import os
 import argparse
@@ -18,6 +14,10 @@ from tqdm import tqdm
 from datasets import Dataset, load_metric
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 from sklearn.metrics import classification_report, confusion_matrix
+
+import ray
+from ray import tune
+from ray.tune.schedulers import PopulationBasedTraining
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -86,6 +86,14 @@ def get_params():
     parser.add_argument('--adam_epsilon', type=float, default=1e-8)
     parser.add_argument('--max_grad_norm', default=1.0, type=float, help="Max gradient norm.")
     parser.add_argument('--seed', default=42, type=int)
+    parser.add_argument('--warmup_steps', default=0, type=int)
+    parser.add_argument('--eval_steps', default=500, type=int)
+    parser.add_argument('--save_steps', default=1000, type=int)
+    parser.add_argument('--hp_search_ray', action='store_true',
+                        help="Set this flag to use hyper-parameter search by Ray.")
+    parser.add_argument('--hp_trials', default=10, type=int)
+    parser.add_argument('--hp_n_jobs', default=1, type=int)
+    parser.add_argument('--hp_server_port', default=8080, type=int)
 
     opt = parser.parse_args()
     return opt
@@ -94,6 +102,7 @@ def main():
     opt = get_params()
 
     # prepare / preprocess data
+
     train_dataset, valid_dataset, test_dataset, label2id, id2label = prepare_dataset(opt.input_path)
     logger.info("dataset ready")
 
@@ -107,22 +116,14 @@ def main():
     logger.info("preprocessing done")
 
     # prepare model
+
     num_labels = len(label2id)
-    model = AutoModelForSequenceClassification.from_pretrained(opt.bert_model_name_or_path, num_labels=num_labels)
+    def model_init():
+        return AutoModelForSequenceClassification.from_pretrained(opt.bert_model_name_or_path, num_labels=num_labels, return_dict=True)
+    model = model_init()
     logger.info("classification model ready")
 
-    # prepare trainer
-    args = TrainingArguments(
-        opt.task,
-        evaluation_strategy = 'epoch',
-        learning_rate=opt.learning_rate,
-        per_device_train_batch_size=opt.per_device_train_batch_size, # distil-bert-*: 16, bert-*: 32
-        per_device_eval_batch_size=opt.per_device_eval_batch_size,
-        num_train_epochs=opt.num_train_epochs,
-        weight_decay=opt.weight_decay,
-        load_best_model_at_end=True,
-        metric_for_best_model=opt.metric_for_best_model,
-    )
+    # prepare trainer and train
 
     metric = load_metric('glue', 'sst2')
     def compute_metrics(eval_pred):
@@ -134,20 +135,74 @@ def main():
         print(confusion_matrix(labels, predictions))
         return metric.compute(predictions=predictions, references=labels)
 
-    trainer = Trainer(
-        model,
-        args,
-        train_dataset=encoded_train_dataset,
-        eval_dataset=encoded_valid_dataset,
-        tokenizer=tokenizer,
-        compute_metrics=compute_metrics
-    )
-
-    # train
-    trainer.train()
-
-    # predict
-    trainer.predict(encoded_test_dataset)
+    if opt.hp_search_ray:
+        args = TrainingArguments(
+            opt.task,
+            do_train=True,
+            do_eval=True,
+            learning_rate=opt.learning_rate,
+            per_device_train_batch_size=opt.per_device_train_batch_size, # distil-bert-*: 16, bert-*: 32
+            per_device_eval_batch_size=opt.per_device_eval_batch_size,
+            num_train_epochs=opt.num_train_epochs,
+            weight_decay=opt.weight_decay,
+            warmup_steps=opt.warmup_steps,
+            evaluate_during_training=True,
+            eval_steps=opt.eval_steps,
+            save_steps=opt.save_steps,
+            disable_tqdm=True
+        )
+        trainer = Trainer(
+            args=args,
+            tokenizer=tokenizer,
+            train_dataset=encoded_train_dataset,
+            eval_dataset=encoded_valid_dataset,
+            model_init=model_init,
+            compute_metrics=compute_metrics
+        )
+        scheduler = PopulationBasedTraining(
+            time_attr='training_iteration',
+            metric=opt.metric_for_best_model,
+            mode='max' if 'loss' in opt.metric_for_best_model else 'min',
+            perturbation_interval=1,
+            hyperparam_mutations={
+                'weight_decay': tune.uniform(0.0, 0.3),
+                'learning_rate': tune.uniform(1e-5, 5e-5),
+                'per_device_train_batch_size': [16, 32, 64],
+            }) 
+        trainer.hyperparameter_search(
+            backend='ray', 
+            scheduler=scheduler,
+            keep_checkpoints_num=3,
+            n_trials=opt.hp_trials, # number of trials
+            n_jobs=opt.hp_n_jobs,   # number of parallel jobs, if multiple GPUs
+            server_port=opt.hp_server_port,
+        )
+    else:
+        args = TrainingArguments(
+            opt.task,
+            do_train=True,
+            do_eval=True,
+            learning_rate=opt.learning_rate,
+            per_device_train_batch_size=opt.per_device_train_batch_size, # distil-bert-*: 16, bert-*: 32
+            per_device_eval_batch_size=opt.per_device_eval_batch_size,
+            num_train_epochs=opt.num_train_epochs,
+            weight_decay=opt.weight_decay,
+            warmup_steps=opt.warmup_steps,
+            evaluate_during_training=True,
+            evaluation_strategy = 'epoch',
+            load_best_model_at_end=True,
+            metric_for_best_model=opt.metric_for_best_model,
+        )
+        trainer = Trainer(
+            model,
+            args,
+            train_dataset=encoded_train_dataset,
+            eval_dataset=encoded_valid_dataset,
+            tokenizer=tokenizer,
+            compute_metrics=compute_metrics
+        )
+        trainer.train()
+        trainer.predict(encoded_test_dataset)
 
 
 if __name__ == '__main__':
