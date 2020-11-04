@@ -1,8 +1,8 @@
-### spamfilter examples using transformers and trainer
+### examples using transformers and trainer
 
 #### env
 
-- data
+- data samples
   - http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/smsspamcollection.zip
 
 - conda
