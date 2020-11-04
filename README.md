@@ -26,7 +26,7 @@ $ python train.py
 
 - hyper-parameter search
 ```
-$ python train.py --hp_search_ray --hp_dashboard_port=9599
+$ python train.py --hp_search_ray --hp_dashboard_port={your_port}
 ...
 Number of trials: 10 (1 PAUSED, 6 PENDING, 1 RUNNING, 2 TERMINATED)
 +------------------------+------------+------------------+-----------------+--------------------+-------------------------------+----------+----------------+-------------+
