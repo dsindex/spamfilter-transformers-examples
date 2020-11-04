@@ -74,7 +74,7 @@ def prepare_dataset(input_path):
 def get_params():
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('--task', type=str, default='spamfilter')
+    parser.add_argument('--task', type=str, default='classifier')
     parser.add_argument('--metric_for_best_model', type=str, default='eval_loss')
     parser.add_argument('--input_path', type=str, default='./SMSSpamCollection.txt')
     parser.add_argument('--bert_model_name_or_path', type=str, default='distilbert-base-cased')
@@ -133,6 +133,7 @@ def main():
         target_names = [v for k, v in sorted(id2label.items(), key=lambda x: x[0])] 
         print(classification_report(labels, predictions, target_names=target_names, digits=4)) 
         print(confusion_matrix(labels, predictions))
+        # ex) {'accuracy': 0.9798657718120806}
         return metric.compute(predictions=predictions, references=labels)
 
     if opt.hp_search_ray:
@@ -162,7 +163,7 @@ def main():
         scheduler = PopulationBasedTraining(
             time_attr='training_iteration',
             metric=opt.metric_for_best_model,
-            mode='min' if 'loss' in opt.metric_for_best_model else 'max',
+            mode='max',  # it depends metric.compute()
             perturbation_interval=1,
             hyperparam_mutations={
                 'weight_decay': tune.uniform(0.0, 0.3),
@@ -171,10 +172,10 @@ def main():
             }) 
         ray.init(dashboard_port=opt.hp_dashboard_port)
         trainer.hyperparameter_search(
-            backend='ray', 
-            direction='minimize' if 'loss' in opt.metric_for_best_model else 'maximize',
+            backend='ray',
+            direction='maximize',   # it depends metric.compute()
             scheduler=scheduler,
-            keep_checkpoints_num=3,
+            keep_checkpoints_num=2,
             n_trials=opt.hp_trials, # number of trials
             n_jobs=opt.hp_n_jobs,   # number of parallel jobs, if multiple GPUs
         )
@@ -189,8 +190,8 @@ def main():
             num_train_epochs=opt.num_train_epochs,
             weight_decay=opt.weight_decay,
             warmup_steps=opt.warmup_steps,
-            evaluate_during_training=True,
-            evaluation_strategy = 'epoch',
+            evaluation_strategy='epoch',
+            disable_tqdm=False,
             load_best_model_at_end=True,
             metric_for_best_model=opt.metric_for_best_model,
         )
