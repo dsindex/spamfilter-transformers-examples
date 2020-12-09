@@ -79,6 +79,7 @@ def get_params():
     parser.add_argument('--input_path', type=str, default='./SMSSpamCollection.txt')
     parser.add_argument('--bert_model_name_or_path', type=str, default='distilbert-base-cased')
     parser.add_argument('--learning_rate', type=float, default=1e-5)
+    parser.add_argument('--max_length', type=int, default=100)
     parser.add_argument('--per_device_train_batch_size', type=int, default=16)
     parser.add_argument('--per_device_eval_batch_size', type=int, default=32)
     parser.add_argument('--num_train_epochs', type=int, default=3)
@@ -109,7 +110,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(opt.bert_model_name_or_path, use_fast=True)
 
     def preprocess_function(examples):
-        return tokenizer(examples['sentence'], padding=True, truncation=True)
+        return tokenizer(examples['sentence'], max_length=opt.max_length, padding='max_length', truncation=True)
     encoded_train_dataset = train_dataset.map(preprocess_function, batched=True)
     encoded_valid_dataset = valid_dataset.map(preprocess_function, batched=True)
     encoded_test_dataset = test_dataset.map(preprocess_function, batched=True)
