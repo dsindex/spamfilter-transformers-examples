@@ -21,9 +21,7 @@ from ray.tune.schedulers import PopulationBasedTraining
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-streamHandler = logging.StreamHandler()
 fileHandler = logging.FileHandler('./train.log')
-logger.addHandler(streamHandler)
 logger.addHandler(fileHandler)
 
 def prepare_dataset(input_path):
