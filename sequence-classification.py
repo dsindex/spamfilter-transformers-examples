@@ -72,7 +72,7 @@ def prepare_dataset(input_path):
 def get_params():
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('--task', type=str, default='classifier')
+    parser.add_argument('--task', type=str, default='test-classifier')
     parser.add_argument('--metric_for_best_model', type=str, default='eval_loss')
     parser.add_argument('--input_path', type=str, default='./SMSSpamCollection.txt')
     parser.add_argument('--bert_model_name_or_path', type=str, default='distilbert-base-cased')

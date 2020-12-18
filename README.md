@@ -2,9 +2,6 @@
 
 #### env
 
-- data samples
-  - http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/smsspamcollection.zip
-
 - conda
   - [conda](https://docs.anaconda.com/anaconda/install/mac-os/#using-the-command-line-install)
   ```
@@ -17,16 +14,19 @@
 $ python -m pip install -r requirements
 ```
 
-#### experiments
+#### sequence classification
+
+- data samples
+  - http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/smsspamcollection.zip
 
 - train/evaluate
 ```
-$ python train.py
+$ python sequence-classification.py
 ```
 
 - hyper-parameter search
 ```
-$ python train.py --hp_search_ray --eval_steps=500 --hp_dashboard_port={your_port}
+$ python sequence-classification.py --hp_search_ray --eval_steps=500 --hp_dashboard_port={your_port}
 ...
 Number of trials: 10 (1 PAUSED, 6 PENDING, 1 RUNNING, 2 TERMINATED)
 +------------------------+------------+------------------+-----------------+--------------------+-------------------------------+----------+----------------+-------------+
@@ -47,13 +47,25 @@ Number of trials: 10 (1 PAUSED, 6 PENDING, 1 RUNNING, 2 TERMINATED)
 
 ```
 
-- reference
-  - https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/text_classification.ipynb?fbclid=IwAR1CiTt_tKSvh4ee_Kpep41yS8Dhd6m9osJYZaRaR5qFuycOvADeCK6jIZA#scrollTo=zVvslsfMIrIh
-  - ray
-    - https://docs.ray.io/en/master/tune/examples/pbt_transformers.html
-    - https://docs.ray.io/en/latest/tune/api_docs/execution.html#tune-run
-    - https://docs.ray.io/en/master/package-ref.html
-  - https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
-  ```
-  Micro average (averaging the total true positives, false negatives and false positives) is only shown for multi-label or multi-class with a subset of classes, because it corresponds to accuracy otherwise.
-  ```
+#### question answering
+
+- train/evaluate
+```
+$ python question-answering.py
+
+
+```
+
+
+#### reference
+
+- https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/text_classification.ipynb?fbclid=IwAR1CiTt_tKSvh4ee_Kpep41yS8Dhd6m9osJYZaRaR5qFuycOvADeCK6jIZA#scrollTo=zVvslsfMIrIh
+- https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/question_answering.ipynb#scrollTo=whPRbBNbIrIl
+- ray
+  - https://docs.ray.io/en/master/tune/examples/pbt_transformers.html
+  - https://docs.ray.io/en/latest/tune/api_docs/execution.html#tune-run
+  - https://docs.ray.io/en/master/package-ref.html
+- https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
+```
+Micro average (averaging the total true positives, false negatives and false positives) is only shown for multi-label or multi-class with a subset of classes, because it corresponds to accuracy otherwise.
+```
