@@ -210,7 +210,7 @@ def postprocess_qa_predictions(opt, examples, features, raw_predictions, tokeniz
     predictions = collections.OrderedDict()
 
     # Logging.
-    print(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
+    logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
 
     # Let's loop over all the examples!
     for example_index, example in enumerate(tqdm(examples)):
@@ -391,8 +391,10 @@ def main():
         else:
             formatted_predictions = [{"id": k, "prediction_text": v} for k, v in final_predictions.items()]
         references = [{"id": ex["id"], "answers": ex["answers"]} for ex in datasets["validation"]]
-        ret = metric.compute(predictions=formatted_predictions, references=references)
-        logger.info("metric: {}", ret)
+
+        print(references[0])
+        print(formatted_predictions[0])
+        print(metric.compute(predictions=formatted_predictions, references=references))
 
 if __name__ == '__main__':
     main()
