@@ -9,7 +9,8 @@ import torch.nn.functional as F
 import numpy as np
 import random
 import json
-from tqdm import tqdm
+from tqdm.auto import tqdm
+import collections
 
 from datasets import load_dataset, load_metric
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering, TrainingArguments, Trainer, default_data_collator
@@ -27,6 +28,8 @@ def get_params():
     parser = argparse.ArgumentParser()
     
     parser.add_argument('--task', type=str, default='test-squad')
+    parser.add_argument('--squad_v2', action='store_true',
+                        help="Set this flag for squad_v2.")
     parser.add_argument('--metric_for_best_model', type=str, default='eval_loss')
     parser.add_argument('--bert_model_name_or_path', type=str, default='distilbert-base-uncased')
     parser.add_argument('--learning_rate', type=float, default=2e-5)
@@ -52,8 +55,7 @@ def get_params():
     return opt
 
 def prepare_datasets(opt):
-    squad_v2 = False
-    datasets = load_dataset('squad_v2' if squad_v2 else 'squad') 
+    datasets = load_dataset('squad_v2' if opt.squad_v2 else 'squad') 
     print(datasets['train'][0])
 
     logger.info("datasets ready")
@@ -190,11 +192,92 @@ def preprocess_validation_datasets(opt, datasets, tokenizer):
 
         return tokenized_examples
 
-    validation_datasets = datasets["validation"].map(prepare_validation_features, batched=True, remove_columns=datasets["validation"].column_names) 
-    print(validation_datasets[0])
+    validation_features = datasets["validation"].map(prepare_validation_features, batched=True, remove_columns=datasets["validation"].column_names) 
+    print(validation_features[0])
     logger.info("preprocessing validation datasets done")
     
-    return validation_datasets
+    return validation_features
+
+def postprocess_qa_predictions(opt, examples, features, raw_predictions, tokenizer, n_best_size = 20, max_answer_length = 30):
+    all_start_logits, all_end_logits = raw_predictions
+    # Build a map example to its corresponding features.
+    example_id_to_index = {k: i for i, k in enumerate(examples["id"])}
+    features_per_example = collections.defaultdict(list)
+    for i, feature in enumerate(features):
+        features_per_example[example_id_to_index[feature["example_id"]]].append(i)
+
+    # The dictionaries we have to fill.
+    predictions = collections.OrderedDict()
+
+    # Logging.
+    print(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
+
+    # Let's loop over all the examples!
+    for example_index, example in enumerate(tqdm(examples)):
+        # Those are the indices of the features associated to the current example.
+        feature_indices = features_per_example[example_index]
+
+        min_null_score = None # Only used if squad_v2 is True.
+        valid_answers = []
+        
+        context = example["context"]
+        # Looping through all the features associated to the current example.
+        for feature_index in feature_indices:
+            # We grab the predictions of the model for this feature.
+            start_logits = all_start_logits[feature_index]
+            end_logits = all_end_logits[feature_index]
+            # This is what will allow us to map some the positions in our logits to span of texts in the original
+            # context.
+            offset_mapping = features[feature_index]["offset_mapping"]
+
+            # Update minimum null prediction.
+            cls_index = features[feature_index]["input_ids"].index(tokenizer.cls_token_id)
+            feature_null_score = start_logits[cls_index] + end_logits[cls_index]
+            if min_null_score is None or min_null_score < feature_null_score:
+                min_null_score = feature_null_score
+
+            # Go through all possibilities for the `n_best_size` greater start and end logits.
+            start_indexes = np.argsort(start_logits)[-1 : -n_best_size - 1 : -1].tolist()
+            end_indexes = np.argsort(end_logits)[-1 : -n_best_size - 1 : -1].tolist()
+            for start_index in start_indexes:
+                for end_index in end_indexes:
+                    # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
+                    # to part of the input_ids that are not in the context.
+                    if (
+                        start_index >= len(offset_mapping)
+                        or end_index >= len(offset_mapping)
+                        or offset_mapping[start_index] is None
+                        or offset_mapping[end_index] is None
+                    ):
+                        continue
+                    # Don't consider answers with a length that is either < 0 or > max_answer_length.
+                    if end_index < start_index or end_index - start_index + 1 > max_answer_length:
+                        continue
+
+                    start_char = offset_mapping[start_index][0]
+                    end_char = offset_mapping[end_index][1]
+                    valid_answers.append(
+                        {
+                            "score": start_logits[start_index] + end_logits[end_index],
+                            "text": context[start_char: end_char]
+                        }
+                    )
+        
+        if len(valid_answers) > 0:
+            best_answer = sorted(valid_answers, key=lambda x: x["score"], reverse=True)[0]
+        else:
+            # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
+            # failure.
+            best_answer = {"text": "", "score": 0.0}
+        
+        # Let's pick our final answer: the best one or the null answer (only for squad_v2)
+        if not opt.squad_v2:
+            predictions[example["id"]] = best_answer["text"]
+        else:
+            answer = best_answer["text"] if best_answer["score"] > min_null_score else ""
+            predictions[example["id"]] = answer
+
+    return predictions
 
 def main():
     opt = get_params()
@@ -204,7 +287,6 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(opt.bert_model_name_or_path, use_fast=True)
 
     tokenized_datasets = preprocess_datasets(opt, datasets, tokenizer)
-    validation_datasets = preprocess_validation_datasets(opt, datasets, tokenizer)
 
     data_collator = default_data_collator
 
@@ -281,9 +363,36 @@ def main():
             data_collator=data_collator,
         )
         trainer.train()
+        logger.info("training done")
+
         trainer.save_model("test-squad-trained")
+        logger.info("model saved")
 
+        validation_features = preprocess_validation_datasets(opt, datasets, tokenizer)
+        raw_predictions = trainer.predict(validation_features)
+        logger.info("prediction done")
 
+        validation_features.set_format(type=validation_features.format["type"], columns=list(validation_features.features.keys()))
+
+        final_predictions = postprocess_qa_predictions(opt, datasets["validation"], validation_features, raw_predictions.predictions, tokenizer)
+        if opt.squad_v2:
+            import os
+            # Adapt this to your local environment
+            path_to_transformers = "../transformers"
+            path_to_qa_examples = os.path.join(path_to_transformers, "examples/question-answering")
+            metric = load_metric(os.path.join(path_to_qa_examples, "squad_v2_local"))
+            # Uncomment when the fix is merged in master and has been released.
+            # metric = load_metric("squad_v2")
+        else:
+            metric = load_metric("squad")
+       
+        if opt.squad_v2:
+            formatted_predictions = [{"id": k, "prediction_text": v, "no_answer_probability": 0.0} for k, v in predictions.items()]
+        else:
+            formatted_predictions = [{"id": k, "prediction_text": v} for k, v in final_predictions.items()]
+        references = [{"id": ex["id"], "answers": ex["answers"]} for ex in datasets["validation"]]
+        ret = metric.compute(predictions=formatted_predictions, references=references)
+        logger.info("metric: {}", ret)
 
 if __name__ == '__main__':
     main()
