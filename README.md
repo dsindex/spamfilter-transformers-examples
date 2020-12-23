@@ -54,7 +54,8 @@ $ cd ..
 $ git clone -b v4.1.1 https://github.com/huggingface/transformers.git
 
 $ python question-answering.py --squad_v2 --num_train_epochs=3
-
+...
+OrderedDict([('exact', 64.35610208035037), ('f1', 67.47884060584892), ('total', 11873), ('HasAns_exact', 60.07085020242915), ('HasAns_f1', 66.32528247524326), ('HasAns_total', 5928), ('NoAns_exact', 68.6291000841043), ('NoAns_f1', 68.6291000841043), ('NoAns_total', 5945), ('best_exact', 64.35610208035037), ('best_exact_thresh', 0.0), ('best_f1', 67.47884060584907), ('best_f1_thresh', 0.0)])
 
 ```
 
