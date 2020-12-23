@@ -24,36 +24,6 @@ logger = logging.getLogger(__name__)
 fileHandler = logging.FileHandler('./train.log')
 logger.addHandler(fileHandler)
 
-def get_params():
-    parser = argparse.ArgumentParser()
-    
-    parser.add_argument('--task', type=str, default='test-squad')
-    parser.add_argument('--squad_v2', action='store_true',
-                        help="Set this flag for squad_v2.")
-    parser.add_argument('--metric_for_best_model', type=str, default='eval_loss')
-    parser.add_argument('--bert_model_name_or_path', type=str, default='distilbert-base-uncased')
-    parser.add_argument('--learning_rate', type=float, default=2e-5)
-    parser.add_argument('--max_length', type=int, default=384, help="The maximum length of a feature (question and context).")
-    parser.add_argument('--doc_stride', type=int, default=128, help="The authorized overlap between two part of the context when splitting it is needed.")
-    parser.add_argument('--per_device_train_batch_size', type=int, default=16)
-    parser.add_argument('--per_device_eval_batch_size', type=int, default=32)
-    parser.add_argument('--num_train_epochs', type=int, default=3)
-    parser.add_argument('--weight_decay', type=float, default=0.01)
-    parser.add_argument('--adam_epsilon', type=float, default=1e-8)
-    parser.add_argument('--max_grad_norm', default=1.0, type=float, help="Max gradient norm.")
-    parser.add_argument('--seed', default=42, type=int)
-    parser.add_argument('--warmup_steps', default=0, type=int)
-    parser.add_argument('--eval_steps', default=500, type=int)
-    parser.add_argument('--save_steps', default=1000, type=int)
-    parser.add_argument('--hp_search_ray', action='store_true',
-                        help="Set this flag to use hyper-parameter search by Ray.")
-    parser.add_argument('--hp_trials', default=10, type=int)
-    parser.add_argument('--hp_n_jobs', default=1, type=int)
-    parser.add_argument('--hp_dashboard_port', default=8080, type=int)
-
-    opt = parser.parse_args()
-    return opt
-
 def prepare_datasets(opt):
     datasets = load_dataset('squad_v2' if opt.squad_v2 else 'squad') 
     print(datasets['train'][0])
@@ -279,6 +249,36 @@ def postprocess_qa_predictions(opt, examples, features, raw_predictions, tokeniz
 
     return predictions
 
+def get_params():
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument('--task', type=str, default='test-squad')
+    parser.add_argument('--squad_v2', action='store_true',
+                        help="Set this flag for squad_v2.")
+    parser.add_argument('--metric_for_best_model', type=str, default='eval_loss')
+    parser.add_argument('--bert_model_name_or_path', type=str, default='distilbert-base-uncased')
+    parser.add_argument('--learning_rate', type=float, default=2e-5)
+    parser.add_argument('--max_length', type=int, default=384, help="The maximum length of a feature (question and context).")
+    parser.add_argument('--doc_stride', type=int, default=128, help="The authorized overlap between two part of the context when splitting it is needed.")
+    parser.add_argument('--per_device_train_batch_size', type=int, default=16)
+    parser.add_argument('--per_device_eval_batch_size', type=int, default=32)
+    parser.add_argument('--num_train_epochs', type=int, default=3)
+    parser.add_argument('--weight_decay', type=float, default=0.01)
+    parser.add_argument('--adam_epsilon', type=float, default=1e-8)
+    parser.add_argument('--max_grad_norm', default=1.0, type=float, help="Max gradient norm.")
+    parser.add_argument('--seed', default=42, type=int)
+    parser.add_argument('--warmup_steps', default=0, type=int)
+    parser.add_argument('--eval_steps', default=500, type=int)
+    parser.add_argument('--save_steps', default=1000, type=int)
+    parser.add_argument('--hp_search_ray', action='store_true',
+                        help="Set this flag to use hyper-parameter search by Ray.")
+    parser.add_argument('--hp_trials', default=10, type=int)
+    parser.add_argument('--hp_n_jobs', default=1, type=int)
+    parser.add_argument('--hp_dashboard_port', default=8080, type=int)
+
+    opt = parser.parse_args()
+    return opt
+
 def main():
     opt = get_params()
 
@@ -376,25 +376,33 @@ def main():
 
         final_predictions = postprocess_qa_predictions(opt, datasets["validation"], validation_features, raw_predictions.predictions, tokenizer)
         if opt.squad_v2:
+            # git clone -b v4.1.1 https://github.com/huggingface/transformers.git
             import os
             # Adapt this to your local environment
             path_to_transformers = "../transformers"
             path_to_qa_examples = os.path.join(path_to_transformers, "examples/question-answering")
             metric = load_metric(os.path.join(path_to_qa_examples, "squad_v2_local"))
-            # Uncomment when the fix is merged in master and has been released.
-            # metric = load_metric("squad_v2")
+            # Uncomment when the fix is merged in master and has been released. 
+            #metric = load_metric("squad_v2")
         else:
             metric = load_metric("squad")
        
         if opt.squad_v2:
-            formatted_predictions = [{"id": k, "prediction_text": v, "no_answer_probability": 0.0} for k, v in predictions.items()]
+            formatted_predictions = [{"id": k, "prediction_text": v, "no_answer_probability": 0.0} for k, v in final_predictions.items()]
         else:
             formatted_predictions = [{"id": k, "prediction_text": v} for k, v in final_predictions.items()]
         references = [{"id": ex["id"], "answers": ex["answers"]} for ex in datasets["validation"]]
 
         print(references[0])
         print(formatted_predictions[0])
+        '''
+        {'id': '56ddde6b9a695914005b9628', 'answers': {'answer_start': [159, 159, 159, 159], 'text': ['France', 'France', 'France', 'France']}}
+        {'id': '56ddde6b9a695914005b9628', 'prediction_text': 'France', 'no_answer_probability': 0.0}
+        '''
         print(metric.compute(predictions=formatted_predictions, references=references))
+        '''
+        OrderedDict([('exact', 58.923608186641964), ('f1', 62.25962746847768), ('total', 11873), ('HasAns_exact', 56.15721997300945), ('HasAns_f1', 62.83882539359549), ('HasAns_total', 5928), ('NoAns_exact', 61.682085786375104), ('NoAns_f1', 61.682085786375104), ('NoAns_total', 5945), ('best_exact', 59.1425924366209), ('best_exact_thresh', 0.0), ('best_f1', 62.40809402356971), ('best_f1_thresh', 0.0)])
+        '''
 
 if __name__ == '__main__':
     main()

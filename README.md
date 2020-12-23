@@ -51,7 +51,11 @@ Number of trials: 10 (1 PAUSED, 6 PENDING, 1 RUNNING, 2 TERMINATED)
 
 - train/evaluate
 ```
-$ python question-answering.py
+* for metirc for squad_v2, we need to clone transformers
+$ cd ..
+$ git clone -b v4.1.1 https://github.com/huggingface/transformers.git
+
+$ python question-answering.py --squad_v2 --num_train_epochs=3
 
 
 ```
