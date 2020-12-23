@@ -1,6 +1,4 @@
-### examples using transformers and trainer
-
-#### env
+## env
 
 - conda
   - [conda](https://docs.anaconda.com/anaconda/install/mac-os/#using-the-command-line-install)
@@ -14,7 +12,7 @@
 $ python -m pip install -r requirements
 ```
 
-#### sequence classification
+## sequence classification
 
 - data samples
   - http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/smsspamcollection.zip
@@ -47,7 +45,7 @@ Number of trials: 10 (1 PAUSED, 6 PENDING, 1 RUNNING, 2 TERMINATED)
 
 ```
 
-#### question answering
+## question answering
 
 - train/evaluate
 ```
@@ -61,7 +59,7 @@ $ python question-answering.py --squad_v2 --num_train_epochs=3
 ```
 
 
-#### reference
+## reference
 
 - https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/text_classification.ipynb?fbclid=IwAR1CiTt_tKSvh4ee_Kpep41yS8Dhd6m9osJYZaRaR5qFuycOvADeCK6jIZA#scrollTo=zVvslsfMIrIh
 - https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/question_answering.ipynb#scrollTo=whPRbBNbIrIl
