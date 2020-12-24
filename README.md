@@ -53,11 +53,15 @@ Number of trials: 10 (1 PAUSED, 6 PENDING, 1 RUNNING, 2 TERMINATED)
 $ cd ..
 $ git clone -b v4.1.1 https://github.com/huggingface/transformers.git
 
-$ python question-answering.py --squad_v2 --num_train_epochs=3
+$ python question-answering.py --squad_v2 --bert_model_name_or_path=./electra-base-discriminator --num_train_epochs=10
 ...
+OrderedDict([('exact', 73.25865408910974), ('f1', 76.66403667197368), ('total', 11873), ('HasAns_exact', 81.19095816464238), ('HasAns_f1', 88.01148910363425), ('HasAns_total', 5928), ('NoAns_exact', 65.34903280067283), ('NoAns_f1', 65.34903280067283), ('NoAns_total', 5945), ('best_exact', 73.25865408910974), ('best_exact_thresh', 0.0), ('best_f1', 76.6640366719737), ('best_f1_thresh', 0.0)])
+
+* --bert_model_name_or_path=distilbert-base-uncased
 OrderedDict([('exact', 64.35610208035037), ('f1', 67.47884060584892), ('total', 11873), ('HasAns_exact', 60.07085020242915), ('HasAns_f1', 66.32528247524326), ('HasAns_total', 5928), ('NoAns_exact', 68.6291000841043), ('NoAns_f1', 68.6291000841043), ('NoAns_total', 5945), ('best_exact', 64.35610208035037), ('best_exact_thresh', 0.0), ('best_f1', 67.47884060584907), ('best_f1_thresh', 0.0)])
 
 ```
+
 
 
 ## reference

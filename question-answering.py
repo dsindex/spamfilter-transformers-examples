@@ -18,6 +18,7 @@ from transformers import AutoTokenizer, AutoModelForQuestionAnswering, TrainingA
 import ray
 from ray import tune
 from ray.tune.schedulers import PopulationBasedTraining
+from ray.tune.suggest.hyperopt import HyperOptSearch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -308,7 +309,7 @@ def main():
             num_train_epochs=opt.num_train_epochs,
             weight_decay=opt.weight_decay,
             warmup_steps=opt.warmup_steps,
-            evaluate_during_training=True,
+            evaluation_strategy='steps',
             eval_steps=opt.eval_steps,
             save_steps=opt.save_steps,
             disable_tqdm=True
@@ -324,7 +325,7 @@ def main():
         scheduler = PopulationBasedTraining(
             time_attr='training_iteration',
             metric=opt.metric_for_best_model,
-            mode='max',  # it depends metric.compute()
+            mode='min',  # it depends metric.compute()
             perturbation_interval=1,
             hyperparam_mutations={
                 'weight_decay': tune.uniform(0.0, 0.3),
@@ -334,7 +335,8 @@ def main():
         ray.init(dashboard_port=opt.hp_dashboard_port)
         trainer.hyperparameter_search(
             backend='ray',
-            direction='maximize',   # it depends metric.compute()
+            direction='minimize',   # it depends metric.compute()
+            search_alg=HyperOptSearch(),
             scheduler=scheduler,
             keep_checkpoints_num=2,
             n_trials=opt.hp_trials, # number of trials

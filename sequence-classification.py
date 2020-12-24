@@ -18,6 +18,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 import ray
 from ray import tune
 from ray.tune.schedulers import PopulationBasedTraining
+from ray.tune.suggest.hyperopt import HyperOptSearch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -146,7 +147,7 @@ def main():
             num_train_epochs=opt.num_train_epochs,
             weight_decay=opt.weight_decay,
             warmup_steps=opt.warmup_steps,
-            evaluate_during_training=True,
+            evaluation_strategy='steps',
             eval_steps=opt.eval_steps,
             save_steps=opt.save_steps,
             disable_tqdm=True
@@ -173,6 +174,7 @@ def main():
         trainer.hyperparameter_search(
             backend='ray',
             direction='maximize',   # it depends metric.compute()
+            search_alg=HyperOptSearch(),
             scheduler=scheduler,
             keep_checkpoints_num=2,
             n_trials=opt.hp_trials, # number of trials

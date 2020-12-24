@@ -3,4 +3,4 @@ transformers
 datasets
 tqdm
 sklearn
-ray
+ray[tune]
