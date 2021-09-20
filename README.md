@@ -66,14 +66,14 @@ OrderedDict([('exact', 64.35610208035037), ('f1', 67.47884060584892), ('total', 
 
 ## reference
 
-- https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/text_classification.ipynb?fbclid=IwAR1CiTt_tKSvh4ee_Kpep41yS8Dhd6m9osJYZaRaR5qFuycOvADeCK6jIZA#scrollTo=zVvslsfMIrIh
-- https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/question_answering.ipynb#scrollTo=whPRbBNbIrIl
+- [text classification notebook](https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/text_classification.ipynb?fbclid=IwAR1CiTt_tKSvh4ee_Kpep41yS8Dhd6m9osJYZaRaR5qFuycOvADeCK6jIZA#scrollTo=zVvslsfMIrIh)
+- [question answering notebook](https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/question_answering.ipynb#scrollTo=whPRbBNbIrIl)
   - [qa inference](https://towardsdatascience.com/simple-and-fast-question-answering-system-using-huggingface-distilbert-single-batch-inference-bcf5a5749571)
 - ray
-  - https://docs.ray.io/en/master/tune/examples/pbt_transformers.html
-  - https://docs.ray.io/en/latest/tune/api_docs/execution.html#tune-run
-  - https://docs.ray.io/en/master/package-ref.html
-- https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
+  - [1](https://docs.ray.io/en/master/tune/examples/pbt_transformers.html)
+  - [2](https://docs.ray.io/en/latest/tune/api_docs/execution.html#tune-run)
+  - [3](https://docs.ray.io/en/master/package-ref.html)
+- [classification metric](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html)
 ```
 Micro average (averaging the total true positives, false negatives and false positives) is only shown for multi-label or multi-class with a subset of classes, because it corresponds to accuracy otherwise.
 ```
