@@ -68,6 +68,7 @@ OrderedDict([('exact', 64.35610208035037), ('f1', 67.47884060584892), ('total', 
 
 - https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/text_classification.ipynb?fbclid=IwAR1CiTt_tKSvh4ee_Kpep41yS8Dhd6m9osJYZaRaR5qFuycOvADeCK6jIZA#scrollTo=zVvslsfMIrIh
 - https://colab.research.google.com/github/huggingface/notebooks/blob/master/examples/question_answering.ipynb#scrollTo=whPRbBNbIrIl
+  - [qa inference](https://towardsdatascience.com/simple-and-fast-question-answering-system-using-huggingface-distilbert-single-batch-inference-bcf5a5749571)
 - ray
   - https://docs.ray.io/en/master/tune/examples/pbt_transformers.html
   - https://docs.ray.io/en/latest/tune/api_docs/execution.html#tune-run
